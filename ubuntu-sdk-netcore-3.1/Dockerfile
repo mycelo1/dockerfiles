@@ -1,3 +1,6 @@
+# ******************************************************************************
+# docker run -it --rm -v %USERPROFILE%/docker-home:/home/mycelo image-name bash
+# ******************************************************************************
 FROM ubuntu:bionic
 
 ENV DEBIAN_FRONTEND='noninteractive'
@@ -33,6 +36,15 @@ RUN dpkg -i vscode.deb >> /dev/null || exit 0
 RUN apt-get -f -y install
 RUN wget -q https://github.com/OmniSharp/omnisharp-vscode/releases/download/v1.21.17/csharp-1.21.17.vsix
 
+# user setup
+WORKDIR /tmp
+RUN \
+  echo "#!/bin/bash" >> setup.sh && \
+  echo "" >> setup.sh && \
+  echo "git clone --recurse-submodules https://github.com/mycelo1/vimfiles /home/mycelo/.vim" >> setup.sh && \
+  echo "code --install-extension /tmp/csharp-1.21.17.vsix" >> setup.sh && \
+  chmod a+x setup.sh
+
 # add user mycelo
 RUN useradd -ms /bin/bash mycelo
 RUN echo "mycelo:mycelo" | chpasswd
@@ -41,8 +53,9 @@ RUN echo "mycelo ALL=(ALL) ALL" >> /etc/sudoers
 # login
 USER mycelo
 ENV DISPLAY='host.docker.internal:0.0'
+ENV XDG_RUNTIME_DIR='/tmp'
 WORKDIR /home/mycelo
 
 # user config
-RUN git clone --recurse-submodules https://github.com/mycelo1/vimfiles .vim
-RUN code --install-extension /tmp/csharp-1.21.17.vsix
+#RUN git clone --recurse-submodules https://github.com/mycelo1/vimfiles .vim
+#RUN code --install-extension /tmp/csharp-1.21.17.vsix
